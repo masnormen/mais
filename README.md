@@ -1,5 +1,5 @@
 # mais
-An API to authenticate SIAM UB accocunt. Only returns user profile data once, not session-based.
+An API to authenticate SIAM UB accocunt. This API only authenticate once and then returns the data, not session-based.
 
 ## URL:
 `/index.php`
@@ -25,5 +25,6 @@ An API to authenticate SIAM UB accocunt. Only returns user profile data once, no
         seleksi
         no_ujian
         image
+    }
 }
 ```
