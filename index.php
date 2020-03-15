@@ -1,7 +1,7 @@
 <?php /** @noinspection HtmlDeprecatedAttribute */
 
 error_reporting(0);
-$cookieJar = 'aW5pY29va2llY29raGVoZWhl.ZXhl';
+$cookieJar = 'cache-siam.cache';
 
 $input = file_get_contents('php://input');
 $json = json_decode($input, true);
