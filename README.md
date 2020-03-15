@@ -1,5 +1,5 @@
 # mais
-An API to authenticate SIAM UB accocunt. This API only authenticate once and then returns the data, not session-based.
+An API to authenticate SIAM UB account. This API only authenticate once and then returns the data, not session-based.
 
 ## URL:
 `/index.php`
