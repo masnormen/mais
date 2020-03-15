@@ -1,17 +1,17 @@
 # mais
-An API to authenticate SIAM UB and return user profile data.
+An API to authenticate SIAM UB accocunt. Only returns user profile data once, not session-based.
 
-### URL & Method:
+## URL:
+`/index.php`
 
-POST /index.php
+## Method:
+`POST`
 
-### Parameter:
+## Parameter:
+- `nim: string`
+- `password: string`
 
-- nim: string
-- password: string
-
-### Response:
-
+## Response:
 ```
 {
     status
