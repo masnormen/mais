@@ -1,7 +1,7 @@
 # mais
 An API to authenticate SIAM UB and return user profile data.
 
-### URL & Method
+### URL & Method:
 
 POST /index.php
 
