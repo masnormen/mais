@@ -9,8 +9,8 @@ $json = json_decode($input, true);
 if (count($json) == 2) {
 	$nim = $json['nim'];
 	$password = $json['password'];
-	
-	$login = curl('https://siam.ub.ac.id/index.php', 'username=' . $nim . '&password=' . $password . '&login=Masuk');
+	curl('https://siam.ub.ac.id/index.php', 'username=' . $nim . '&password=' . $password . '&login=Masuk');
+	$login = curl('https://siam.ub.ac.id/akademik.php');
 	$rawdata = explode('<small class="error-code">', $login);
 	
 	if (!empty($rawdata[1])) {
