@@ -1,5 +1,5 @@
 # mais
-An API to authenticate SIAM UB account. This API only authenticate once and then returns the data, not session-based.
+An API to authenticate SIAM UB account and return user data.
 
 ## URL:
 `/index.php`
@@ -28,3 +28,6 @@ An API to authenticate SIAM UB account. This API only authenticate once and then
     }
 }
 ```
+
+## TODO:
+- Use BAIS UB instead of SIAM for more consistent data fetching.
