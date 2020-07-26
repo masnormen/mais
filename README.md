@@ -24,10 +24,9 @@ An API to authenticate SIAM UB account and return user data.
         prodi
         seleksi
         no_ujian
-        image
     }
 }
 ```
 
 ## TODO:
-- Use BAIS UB instead of SIAM for more consistent data fetching.
+- [x] Use BAIS UB instead of SIAM for more consistent data fetching.

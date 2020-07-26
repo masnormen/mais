@@ -24,7 +24,7 @@ if (empty($input['nim']) || empty($input['password'])) {
 // Defining Guzzle default opts
 $jar = new CookieJar();
 $client = new Client([
-	'base_uri' => 'https://siam.ub.ac.id',
+	'base_uri' => 'https://bais.ub.ac.id/',
 	'defaults' => [
 		'headers' => [
 			'User-Agent' => 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/81.0.4044.138 Safari/537.36',
@@ -36,101 +36,74 @@ $client = new Client([
 	]
 ]);
 
-// Login to SIAM index.php
-$client->post('/index.php', [
-	'form_params' => [
-		'username' => $input['nim'],
-		'password' => $input['password'],
-		'login' => 'Masuk'
-	],
+// Retrieve challenge code
+$res = $client->get('/', [
 	'cookies' => $jar
 ]);
+$body = $res->getBody();
+libxml_use_internal_errors(true);
+$dom = new DomDocument;
+$dom->loadHTML($body);
+$xpath = new DomXPath($dom);
+$nodes = $xpath->query("//input[@id = 'challenge']/@value");
+$challenge = $nodes->item(0)->textContent;
 
-// Try to go to akademik.php
-$res = $client->get('/akademik.php', [
+// Login to BAIS
+$res = $client->post('/session/login/', [
 	'allow_redirects' => [
 		'referer' => true,
 		'track_redirects' => true
+	],
+	'form_params' => [
+		'userid' => $input['nim'],
+		'password' => $input['password'],
+		'challenge' => $challenge,
+		'passport' => md5($challenge . $input['password']) . '_' . $input['nim']
 	],
 	'cookies' => $jar
 ]);
 
 /********** START HTML PARSING **********/
+
 $body = $res->getBody();
 libxml_use_internal_errors(true);
 $dom = new DomDocument;
 $dom->loadHTML($body);
 $xpath = new DomXPath($dom);
 
-if (preg_match('/small class="error-code"/', $body)) {
+if ($xpath->query("//div[@id='errormsg']")->length > 0) {
 	http_response_code(401);
 	die(json_encode([
 		'status' => 0,
 		'message' => 'NIM or Password doesn\'t match or not registered',
 	]));
-} else {
+}
+else {
 	try {
-		// If user is redirected to kuisioner.php or notifikasi.php
-		if (!empty($res->getHeaderLine('X-Guzzle-Redirect-History'))) {
-			$nodes = $xpath->query("//td[@class='text']");
-			$image = null;
-			$output = preg_replace('/\s{2,}/', '$', $nodes->item(0)->textContent);
-			preg_match_all('/[\d]+|(\w+\s?)*\w+/', $output, $output);
-			$output = $output[0];
-			$nim = $output[0];
-			$nama = $output[1];
-			$strata = $output[4];
-			$fakultas = $output[5];
-			$jurusan = $output[7];
-			$prodi = $output[9];
-			$seleksi = $output[11];
-			$no_ujian = $output[13];
-			http_response_code(200);
-			echo json_encode([
-				'status' => 1,
-				'data' => [
-					'nama' => $nama,
-					'nim' => $nim,
-					'strata' => $strata,
-					'fakultas' => $fakultas,
-					'jurusan' => $jurusan,
-					'prodi' => $prodi,
-					'seleksi' => $seleksi,
-					'no_ujian' => $no_ujian,
-					'image' => $image[1],
-				],
-//				'key' => $jwt
-			]);
-		} else { // If user can get to akademik.php
-			$nodes = $xpath->query("//div[@class='bio-info']/div");
-			$image = $xpath->query("//div[@class='photo-id']")->item(0)->attributes->getNamedItem("style")->nodeValue;
-			preg_match('/background:url\((.*)\);/', $image, $image);
-			$nim = $nodes->item(0)->nodeValue;
-			$nama = $nodes->item(1)->nodeValue;
-			$fakstrat = explode('/', str_replace('Jenjang/Fakultas', '', $nodes->item(2)->nodeValue));
-			$strata = $fakstrat[0];
-			$fakultas = $fakstrat[1];
-			$jurusan = str_replace('Jurusan', '', $nodes->item(3)->nodeValue);
-			$prodi = str_replace('Program Studi', '', $nodes->item(4)->nodeValue);
-			$seleksi = substr($nodes->item(5)->nodeValue, 7);
-			$no_ujian = str_replace('Nomor Ujian', '', $nodes->item(6)->nodeValue);
-			http_response_code(200);
-			echo json_encode([
-				'status' => 1,
-				'data' => [
-					'nama' => $nama,
-					'nim' => $nim,
-					'strata' => $strata,
-					'fakultas' => $fakultas,
-					'jurusan' => $jurusan,
-					'prodi' => $prodi,
-					'seleksi' => $seleksi,
-					'no_ujian' => $no_ujian,
-					'image' => $image[1],
-				],
-			]);
-			
-		}
+		$nim = $xpath->query("//th[text()='Kode']/following-sibling::td")->item(0)->nodeValue;
+		$nama = $xpath->query("//th[text()='Nama']/following-sibling::td")->item(0)->nodeValue;
+		$strata = $xpath->query("//th[text()='Jenjang']/following-sibling::td")->item(0)->nodeValue;
+		$fakultas = $xpath->query("//th[text()='Fakultas']/following-sibling::td")->item(0)->nodeValue;
+		$jurusan = $xpath->query("//th[text()='Jurusan']/following-sibling::td")->item(0)->nodeValue;
+		$prodi = $xpath->query("//th[text()='Prodi']/following-sibling::td")->item(0)->nodeValue;
+		$seleksi = $xpath->query("//th[text()='Seleksi']/following-sibling::td")->item(0)->nodeValue;
+		$no_ujian = $xpath->query("//th[text()='Hint Answer']/following-sibling::td")->item(0)->nodeValue;
+//		$image = "https://siakad.ub.ac.id/dirfoto/foto/foto_20" . substr($nim, 0, 2) . "/" . $nim . ".JPG";
+		http_response_code(200);
+		echo json_encode([
+			'status' => 1,
+			'data' => [
+				'nama' => $nama,
+				'nim' => $nim,
+				'strata' => $strata,
+				'fakultas' => $fakultas,
+				'jurusan' => $jurusan,
+				'prodi' => $prodi,
+				'seleksi' => $seleksi,
+				'no_ujian' => $no_ujian,
+//				'image' => $image,
+			],
+		]);
 	} catch (Exception $e) {
 		http_response_code(503);
 		echo json_encode([
