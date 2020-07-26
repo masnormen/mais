@@ -1,7 +1,6 @@
 <?php require_once("vendor/autoload.php");
 
 use GuzzleHttp\Client;
-use GuzzleHttp\Cookie\CookieJar;
 
 $input = json_decode(file_get_contents('php://input'), true);
 
@@ -22,24 +21,22 @@ if (empty($input['nim']) || empty($input['password'])) {
 }
 
 // Defining Guzzle default opts
-$jar = new CookieJar();
 $client = new Client([
 	'base_uri' => 'https://bais.ub.ac.id/',
+	'cookies' => true,
 	'defaults' => [
 		'headers' => [
 			'User-Agent' => 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/81.0.4044.138 Safari/537.36',
 			'Accept' => 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9'
 		],
-		'cookies' => $jar,
 		'connect_timeout' => 15,
 		'verify' => false
 	]
 ]);
 
 // Retrieve challenge code
-$res = $client->get('/', [
-	'cookies' => $jar
-]);
+$res = $client->get('/');
+
 $body = $res->getBody();
 libxml_use_internal_errors(true);
 $dom = new DomDocument;
@@ -59,8 +56,7 @@ $res = $client->post('/session/login/', [
 		'password' => $input['password'],
 		'challenge' => $challenge,
 		'passport' => md5($challenge . $input['password']) . '_' . $input['nim']
-	],
-	'cookies' => $jar
+	]
 ]);
 
 /********** START HTML PARSING **********/
