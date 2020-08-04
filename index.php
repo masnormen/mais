@@ -59,6 +59,8 @@ $res = $client->post('/session/login/', [
 	]
 ]);
 
+$client->get('/session/logout/');
+
 /********** START HTML PARSING **********/
 
 $body = $res->getBody();
